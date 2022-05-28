@@ -16,16 +16,23 @@ let CURRENT_JUMP_FORCE = JUMP_FORCE
 const FALL_DEATH = 400
 const ENEMY_SPEED = 20
 
+const LEO_SPEED = 75
+
 // Game logic
 
 let isJumping = true
+
+loadSprite('hannah', 'https://i.imgur.com/nW1fcgl.png')
+loadSprite('leo', 'https://i.imgur.com/sG2wfcD.png')
+loadSprite('fred', 'https://i.imgur.com/iQNmO0a.png')
+loadSprite('jack', 'https://i.imgur.com/i0qgAh6.png')
+loadSprite('kirby', 'https://i.imgur.com/rIz5qtM.png')
 
 loadRoot('https://i.imgur.com/')
 loadSprite('coin', 'wbKxhcd.png')
 loadSprite('evil-shroom', 'KPO3fR9.png')
 loadSprite('brick', 'pogC9x5.png')
 loadSprite('block', 'M6rwarW.png')
-loadSprite('mario', 'Wb1qfhK.png')
 loadSprite('mushroom', '0wMd92p.png')
 loadSprite('surprise', 'gesQ1KP.png')
 loadSprite('unboxed', 'bdrLpi6.png')
@@ -47,29 +54,41 @@ scene("game", ({ level, score }) => {
 
   const maps = [
     [
-      '                                      ',
-      '                                      ',
-      '                                      ',
-      '                                      ',
-      '                                      ',
-      '     %   =*=%=                        ',
-      '                                      ',
-      '                            -+        ',
-      '                    ^   ^   ()        ',
-      '==============================   =====',
+      '                                                              ',
+      '                                                              ',
+      '                                                              ',
+      '                                                              ',
+      '                                                              ',
+      '     %   =*=%=                             ===                ',
+      '                                     ===                      ',
+      '                                ===              ===      -+  ',
+      '                    ^  ^                                  ()  ',
+      '==============================                          ======',
     ],
     [
-      '£                                       £',
-      '£                                       £',
-      '£                                       £',
-      '£                                       £',
-      '£                                       £',
-      '£        @@@@@@              x x        £',
-      '£                          x x x        £',
-      '£                        x x x x  x   -+£',
-      '£               z   z  x x x x x  x   ()£',
-      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
-    ]
+      '£                                               £',
+      '£                                               £',
+      '£                                               £',
+      '£                                               £',
+      '£                                               £',
+      '£        @@@@@@                    x x          £',
+      '£                              x   x x          £',
+      '£                          x   x   x x    x   -+£',
+      '£               z   z  x   x   x   x x    x   ()£',
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!£',
+    ],
+    [
+      '                                                                l                                        ',
+      '                                                                    k                l                   ',
+      '                                                    l                                                    ',
+      '                                          l                     l                                        ',
+      '                                    l                l                        l        l         l       ',
+      '                        l                     l                                                          ',
+      '                                                      l                                                  ',
+      '                               l    l          l               l       l                l          l     ',
+      '                                                                                                         ',
+      '=========================================================================================================',
+    ],
   ]
 
   const levelCfg = {
@@ -84,14 +103,15 @@ scene("game", ({ level, score }) => {
     ')': [sprite('pipe-bottom-right'), solid(), scale(0.5)],
     '-': [sprite('pipe-top-left'), solid(), scale(0.5), 'pipe'],
     '+': [sprite('pipe-top-right'), solid(), scale(0.5), 'pipe'],
-    '^': [sprite('evil-shroom'), solid(), 'dangerous'],
+    '^': [sprite('fred'), solid(), scale(0.8), 'dangerous'],
     '#': [sprite('mushroom'), solid(), 'mushroom', body()],
     '!': [sprite('blue-block'), solid(), scale(0.5)],
     '£': [sprite('blue-brick'), solid(), scale(0.5)],
-    'z': [sprite('blue-evil-shroom'), solid(), scale(0.5), 'dangerous'],
+    'z': [sprite('jack'), solid(), scale(0.9), 'dangerous'],
+    'l': [sprite('leo'), solid(), 'LEO'],
     '@': [sprite('blue-surprise'), solid(), scale(0.5), 'coin-surprise'],
     'x': [sprite('blue-steel'), solid(), scale(0.5)],
-
+    'k': [sprite('kirby'), solid(), scale(0.8), 'kirby'],
   }
 
   const gameLevel = addLevel(maps[level], levelCfg)
@@ -138,7 +158,7 @@ scene("game", ({ level, score }) => {
   }
 
   const player = add([
-    sprite('mario'), solid(),
+    sprite('hannah'), solid(),
     pos(30, 0),
     body(),
     big(),
@@ -177,12 +197,20 @@ scene("game", ({ level, score }) => {
     d.move(-ENEMY_SPEED, 0)
   })
 
+  action('LEO', (d) => {
+    d.move(-LEO_SPEED, 0)
+  })
+
   player.collides('dangerous', (d) => {
     if (isJumping) {
       destroy(d)
     } else {
-      go('lose', { score: scoreLabel.value})
+      go('lose', { score: scoreLabel.value, level})
     }
+  })
+
+  player.collides('kirby', (d) => {
+    go('win screen')
   })
 
   player.action(() => {
@@ -215,7 +243,7 @@ scene("game", ({ level, score }) => {
     }
   })
 
-  keyPress('space', () => {
+  keyPress('up', () => {
     if (player.grounded()) {
       isJumping = true
       player.jump(CURRENT_JUMP_FORCE)
@@ -223,8 +251,12 @@ scene("game", ({ level, score }) => {
   })
 })
 
-scene('lose', ({ score }) => {
+scene('lose', ({ score, level }) => {
   add([text(score, 32), origin('center'), pos(width()/2, height()/ 2)])
+})
+
+scene('win screen', () => {
+  add([text("You saved Kirby! You truly one hell of a Hero Hannah"), origin('center'), pos(width()/2, height()/ 2)])
 })
 
 start("game", { level: 0, score: 0})
